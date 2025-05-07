@@ -1,0 +1,13 @@
+# Node modules
+node_modules/
+
+# Miljöfiler
+.env
+
+# Loggfiler
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Mac-specifika
+.DS_Store
