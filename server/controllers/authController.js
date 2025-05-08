@@ -17,7 +17,10 @@ const signup = async (req, res) => {
     await newUser.save();
 
     const token = createToken(newUser._id);
-    res.status(201).json({ token });
+    res.status(201).json({
+        message: "Användare skapad",
+        token: token
+      });
   } catch (error) {
     res.status(400).json({ error: "Användarnamnet är upptaget eller ogiltigt." });
   }
@@ -39,7 +42,7 @@ const login = async (req, res) => {
     }
 
     const token = createToken(user._id);
-    res.status(200).json({ token });
+    res.status(200).json({ message: "Inloggning lyckades", token: token });
   } catch (error) {
     res.status(500).json({ error: "Något gick fel vid inloggning." });
   }
