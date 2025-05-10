@@ -2,12 +2,13 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import LoginPage from "./pages/LoginPage";
 import DashboardPage from "./pages/DashboardPage";
 import NewApplicationPage from "./pages/NewApplicationPage";
-import EditApplicationPage from "./pages/EditApplicationPage"; // 👈 NY!
+import EditApplicationPage from "./pages/EditApplicationPage"; 
+import "./index.css"; 
 
 function App() {
   const token = localStorage.getItem("token");
 
-  return (
+  return ( 
     <BrowserRouter>
       <Routes>
         <Route
@@ -26,7 +27,7 @@ function App() {
         <Route
           path="/edit-application/:id"
           element={token ? <EditApplicationPage /> : <Navigate to="/login" />}
-        />
+        /> 
       </Routes>
     </BrowserRouter>
   );

@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-// Formulärfältets struktur
 interface NewApplicationData {
   company: string;
   role: string;
@@ -9,25 +8,21 @@ interface NewApplicationData {
   status: string;
 }
 
-// Komponent
 const NewApplicationPage: React.FC = () => {
-  // State för varje fält
   const [formData, setFormData] = useState<NewApplicationData>({
     company: "",
     role: "",
     location: "",
-    status: "Skickad", // Standardvärde
+    status: "Skickad",
   });
 
-  const navigate = useNavigate(); // Används för att gå tillbaka till dashboard
+  const navigate = useNavigate();
 
-  // Hantera ändringar i fälten
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  // Hantera submit
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -43,12 +38,10 @@ const NewApplicationPage: React.FC = () => {
         body: JSON.stringify(formData),
       });
 
-      if (!res.ok) {
-        throw new Error("Något gick fel vid skapandet av ansökan");
-      }
+      if (!res.ok) throw new Error("Något gick fel vid skapandet av ansökan");
 
       alert("Ansökan skapad!");
-      navigate("/dashboard"); // Gå till dashboard
+      navigate("/dashboard");
     } catch (error) {
       console.error(error);
       alert("Misslyckades med att skapa ansökan");
@@ -56,41 +49,53 @@ const NewApplicationPage: React.FC = () => {
   };
 
   return (
-    <div style={{ padding: "2rem" }}>
-      <h2>Ny jobbansökan</h2>
-      <form onSubmit={handleSubmit}>
+    <div className="max-w-xl mx-auto p-6">
+      <h2 className="text-3xl font-bold mb-6 text-center">Ny jobbansökan</h2>
+
+      <form onSubmit={handleSubmit} className="space-y-4 bg-white p-6 rounded-lg shadow">
         <div>
-          <label>Företag:</label>
+          <label className="block font-semibold mb-1">Företag</label>
           <input
             type="text"
             name="company"
             value={formData.company}
             onChange={handleChange}
             required
+            className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
           />
         </div>
-        <div style={{ marginTop: "1rem" }}>
-          <label>Roll:</label>
+
+        <div>
+          <label className="block font-semibold mb-1">Roll</label>
           <input
             type="text"
             name="role"
             value={formData.role}
             onChange={handleChange}
             required
+            className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
           />
         </div>
-        <div style={{ marginTop: "1rem" }}>
-          <label>Plats:</label>
+
+        <div>
+          <label className="block font-semibold mb-1">Plats</label>
           <input
             type="text"
             name="location"
             value={formData.location}
             onChange={handleChange}
+            className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
           />
         </div>
-        <div style={{ marginTop: "1rem" }}>
-          <label>Status:</label>
-          <select name="status" value={formData.status} onChange={handleChange}>
+
+        <div>
+          <label className="block font-semibold mb-1">Status</label>
+          <select
+            name="status"
+            value={formData.status}
+            onChange={handleChange}
+            className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
+          >
             <option value="Skickad">Skickad</option>
             <option value="Pågående">Pågående</option>
             <option value="Intervju">Intervju</option>
@@ -98,7 +103,13 @@ const NewApplicationPage: React.FC = () => {
             <option value="Nej tack">Nej tack</option>
           </select>
         </div>
-        <button style={{ marginTop: "1.5rem" }} type="submit">Skapa ansökan</button>
+
+        <button
+          type="submit"
+          className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 rounded shadow transition"
+        >
+          Skapa ansökan
+        </button>
       </form>
     </div>
   );

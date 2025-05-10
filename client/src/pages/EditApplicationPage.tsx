@@ -10,7 +10,7 @@ interface Application {
 }
 
 const EditApplicationPage: React.FC = () => {
-  const { id } = useParams(); // plockar ut :id från URL
+  const { id } = useParams();
   const navigate = useNavigate();
 
   const [formData, setFormData] = useState<Application>({
@@ -22,7 +22,6 @@ const EditApplicationPage: React.FC = () => {
 
   const [loading, setLoading] = useState(true);
 
-  // Hämta ansökan när sidan laddas
   useEffect(() => {
     const fetchApplication = async () => {
       try {
@@ -78,44 +77,56 @@ const EditApplicationPage: React.FC = () => {
     }
   };
 
-  if (loading) return <p>Laddar ansökan...</p>;
+  if (loading) return <p className="text-center mt-10">Laddar ansökan...</p>;
 
   return (
-    <div style={{ padding: "2rem" }}>
-      <h2>Redigera ansökan</h2>
-      <form onSubmit={handleSubmit}>
+    <div className="max-w-xl mx-auto px-6 py-8">
+      <h2 className="text-2xl font-bold mb-6 text-center">Redigera ansökan</h2>
+
+      <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label>Företag:</label>
+          <label className="block font-medium mb-1">Företag:</label>
           <input
             type="text"
             name="company"
             value={formData.company}
             onChange={handleChange}
             required
+            className="w-full px-4 py-2 border rounded shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
           />
         </div>
-        <div style={{ marginTop: "1rem" }}>
-          <label>Roll:</label>
+
+        <div>
+          <label className="block font-medium mb-1">Roll:</label>
           <input
             type="text"
             name="role"
             value={formData.role}
             onChange={handleChange}
             required
+            className="w-full px-4 py-2 border rounded shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
           />
         </div>
-        <div style={{ marginTop: "1rem" }}>
-          <label>Plats:</label>
+
+        <div>
+          <label className="block font-medium mb-1">Plats:</label>
           <input
             type="text"
             name="location"
             value={formData.location}
             onChange={handleChange}
+            className="w-full px-4 py-2 border rounded shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
           />
         </div>
-        <div style={{ marginTop: "1rem" }}>
-          <label>Status:</label>
-          <select name="status" value={formData.status} onChange={handleChange}>
+
+        <div>
+          <label className="block font-medium mb-1">Status:</label>
+          <select
+            name="status"
+            value={formData.status}
+            onChange={handleChange}
+            className="w-full px-4 py-2 border rounded shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+          >
             <option value="Skickad">Skickad</option>
             <option value="Pågående">Pågående</option>
             <option value="Intervju">Intervju</option>
@@ -123,7 +134,13 @@ const EditApplicationPage: React.FC = () => {
             <option value="Nej tack">Nej tack</option>
           </select>
         </div>
-        <button style={{ marginTop: "1.5rem" }} type="submit">Spara ändringar</button>
+
+        <button
+          type="submit"
+          className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded shadow-md transition"
+        >
+          💾 Spara ändringar
+        </button>
       </form>
     </div>
   );
