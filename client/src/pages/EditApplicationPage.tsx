@@ -1,12 +1,16 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { toast } from "react-hot-toast";
+import Spinner from "../components/Spinner";
 
-// Samma interface som för ny ansökan
 interface Application {
   company: string;
   role: string;
   location: string;
   status: string;
+  contactPerson?: string;
+  notes?: string;
+  deadline?: string;
 }
 
 const EditApplicationPage: React.FC = () => {
@@ -18,6 +22,9 @@ const EditApplicationPage: React.FC = () => {
     role: "",
     location: "",
     status: "Skickad",
+    contactPerson: "",
+    notes: "",
+    deadline: "",
   });
 
   const [loading, setLoading] = useState(true);
@@ -31,23 +38,28 @@ const EditApplicationPage: React.FC = () => {
             Authorization: `Bearer ${token}`,
           },
         });
-
+  
         if (!res.ok) throw new Error("Kunde inte hämta ansökan");
-
+  
         const data = await res.json();
-        setFormData(data);
+  
+        // ✅ Sätt deadline till "" om den saknas eller är null
+        setFormData({
+          ...data,
+          deadline: data.deadline || "",
+        });
       } catch (error) {
         console.error("Fel vid hämtning:", error);
-        alert("Kunde inte ladda ansökan");
+        toast.error("Kunde inte ladda ansökan");
       } finally {
         setLoading(false);
       }
     };
-
+  
     fetchApplication();
   }, [id]);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
@@ -69,15 +81,15 @@ const EditApplicationPage: React.FC = () => {
 
       if (!res.ok) throw new Error("Kunde inte uppdatera ansökan");
 
-      alert("Ansökan uppdaterad!");
+      toast.success("Ansökan uppdaterad!");
       navigate("/dashboard");
     } catch (error) {
       console.error("Fel vid uppdatering:", error);
-      alert("Misslyckades med att uppdatera");
+      toast.error("Misslyckades med att uppdatera");
     }
   };
 
-  if (loading) return <p className="text-center mt-10">Laddar ansökan...</p>;
+  if (loading) return <Spinner />;
 
   return (
     <div className="max-w-xl mx-auto px-6 py-8">
@@ -120,6 +132,30 @@ const EditApplicationPage: React.FC = () => {
         </div>
 
         <div>
+          <label className="block font-medium mb-1">Kontaktperson:</label>
+          <input
+            type="text"
+            name="contactPerson"
+            value={formData.contactPerson}
+            onChange={handleChange}
+            placeholder="Namn på kontaktperson"
+            className="w-full px-4 py-2 border rounded shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+          />
+        </div>
+
+        <div>
+          <label className="block font-medium mb-1">Anteckningar:</label>
+          <textarea
+            name="notes"
+            value={formData.notes}
+            onChange={handleChange}
+            placeholder="Valfria anteckningar om denna ansökan..."
+            rows={4}
+            className="w-full px-4 py-2 border rounded shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400 resize-none"
+          />
+        </div>
+
+        <div>
           <label className="block font-medium mb-1">Status:</label>
           <select
             name="status"
@@ -133,6 +169,17 @@ const EditApplicationPage: React.FC = () => {
             <option value="Avslutat">Avslutat</option>
             <option value="Nej tack">Nej tack</option>
           </select>
+        </div>
+
+        <div>
+          <label className="block font-medium mb-1">Deadline:</label>
+          <input
+            type="date"
+            name="deadline"
+            value={formData.deadline}
+            onChange={handleChange}
+            className="w-full px-4 py-2 border rounded shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+          />
         </div>
 
         <button

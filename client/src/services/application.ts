@@ -9,6 +9,10 @@ export const getApplications = async (): Promise<Application[]> => {
     },
   });
 
+  if (res.status === 403) {
+    throw new Error("forbidden"); // Specialfall som vi kan känna igen
+  }
+
   if (!res.ok) {
     throw new Error("Kunde inte hämta ansökningar");
   }

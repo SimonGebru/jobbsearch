@@ -6,6 +6,7 @@ const {
   getApplicationById,
   updateApplication,
   deleteApplication,
+  partialUpdateApplication,
 } = require("../controllers/applicationController");
 
 const requireAuth = require("../middleware/auth");
@@ -19,5 +20,6 @@ router.post("/", createApplication);
 router.get("/:id", getApplicationById);
 router.put("/:id", updateApplication);
 router.delete("/:id", deleteApplication);
+router.patch("/:id", partialUpdateApplication);
 
 module.exports = router;

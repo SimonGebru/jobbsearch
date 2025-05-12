@@ -56,6 +56,23 @@ const updateApplication = async (req, res) => {
       res.status(400).json({ error: "Kunde inte uppdatera ansökan." });
     }
   };
+  const partialUpdateApplication = async (req, res) => {
+    try {
+      const updated = await Application.findOneAndUpdate(
+        { _id: req.params.id, userId: req.userId },
+        { $set: req.body },
+        { new: true, runValidators: true }
+      );
+  
+      if (!updated) {
+        return res.status(404).json({ error: "Ansökan att uppdatera hittades inte." });
+      }
+  
+      res.status(200).json(updated);
+    } catch (error) {
+      res.status(400).json({ error: "Kunde inte delvis uppdatera ansökan." });
+    }
+  };
 
 // Ta bort en ansökan
 const deleteApplication = async (req, res) => {
@@ -79,4 +96,5 @@ module.exports = {
   getApplicationById,
   updateApplication,
   deleteApplication,
+  partialUpdateApplication,
 };

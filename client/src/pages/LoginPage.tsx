@@ -1,10 +1,12 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { loginUser } from "../services/auth";
-import styles from "./LoginPage.module.css"; // 👈 importera CSS-modul
+import { toast } from "react-hot-toast"; // 👈 Lägg till
 
 const LoginPage: React.FC = () => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -13,39 +15,56 @@ const LoginPage: React.FC = () => {
       const token = await loginUser(username, password);
       console.log("Token från backend:", token);
       localStorage.setItem("token", token);
-      alert("Inloggning lyckades!");
+      localStorage.setItem("username", username);
+
+      toast.success("Inloggning lyckades!"); // ✅
+      navigate("/dashboard");
     } catch (error) {
       console.error("Fel vid inloggning:", error);
-      alert("Fel användarnamn eller lösenord");
+      toast.error("Fel användarnamn eller lösenord"); // ❌
     }
   };
 
   return (
-    <div className={styles.container}>
-      <h2>Logga in</h2>
-      <form onSubmit={handleSubmit}>
-        <div>
-          <label htmlFor="username">Användarnamn:</label>
-          <input
-            type="text"
-            id="username"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-            required
-          />
-        </div>
-        <div className={styles.formGroup}>
-          <label htmlFor="password">Lösenord:</label>
-          <input
-            type="password"
-            id="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
-        </div>
-        <button className={styles.button} type="submit">Logga in</button>
-      </form>
+    <div className="min-h-screen bg-gray-100 flex items-center justify-center px-4">
+      <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
+        <h2 className="text-2xl font-bold mb-6 text-center">Logga in</h2>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label htmlFor="username" className="block mb-1 font-medium">
+              Användarnamn:
+            </label>
+            <input
+              type="text"
+              id="username"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              required
+              className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
+            />
+          </div>
+          <div>
+            <label htmlFor="password" className="block mb-1 font-medium">
+              Lösenord:
+            </label>
+            <input
+              type="password"
+              id="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              autoComplete="current-password"
+              className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
+            />
+          </div>
+          <button
+            type="submit"
+            className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition"
+          >
+            Logga in
+          </button>
+        </form>
+      </div>
     </div>
   );
 };
