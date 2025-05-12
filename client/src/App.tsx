@@ -3,12 +3,14 @@ import LoginPage from "./pages/LoginPage";
 import DashboardPage from "./pages/DashboardPage";
 import NewApplicationPage from "./pages/NewApplicationPage";
 import EditApplicationPage from "./pages/EditApplicationPage"; 
-import "./index.css"; 
+import PrivateRoute from "./components/PrivateRoute";
+import RegisterPage from "./pages/RegisterPage";
+import "./index.css";
 
 function App() {
   const token = localStorage.getItem("token");
 
-  return ( 
+  return (
     <BrowserRouter>
       <Routes>
         <Route
@@ -16,18 +18,32 @@ function App() {
           element={<Navigate to={token ? "/dashboard" : "/login"} />}
         />
         <Route path="/login" element={<LoginPage />} />
+        <Route path="/register" element={<RegisterPage />} />
+        
         <Route
           path="/dashboard"
-          element={token ? <DashboardPage /> : <Navigate to="/login" />}
+          element={
+            <PrivateRoute>
+              <DashboardPage />
+            </PrivateRoute>
+          }
         />
         <Route
           path="/new-application"
-          element={token ? <NewApplicationPage /> : <Navigate to="/login" />}
+          element={
+            <PrivateRoute>
+              <NewApplicationPage />
+            </PrivateRoute>
+          }
         />
         <Route
           path="/edit-application/:id"
-          element={token ? <EditApplicationPage /> : <Navigate to="/login" />}
-        /> 
+          element={
+            <PrivateRoute>
+              <EditApplicationPage />
+            </PrivateRoute>
+          }
+        />
       </Routes>
     </BrowserRouter>
   );

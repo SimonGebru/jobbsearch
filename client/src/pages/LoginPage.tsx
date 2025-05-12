@@ -64,6 +64,12 @@ const LoginPage: React.FC = () => {
             Logga in
           </button>
         </form>
+        <p className="mt-4 text-center text-sm text-gray-600">
+  Har du inget konto?{" "}
+  <a href="/register" className="text-blue-600 hover:underline">
+    Skapa konto
+  </a>
+</p>
       </div>
     </div>
   );
