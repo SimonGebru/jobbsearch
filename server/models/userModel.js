@@ -11,6 +11,12 @@ const userSchema = new mongoose.Schema({
   password: {
     type: String,
     required: true,
+  },
+  email: {
+    type: String,
+    unique: true,
+    sparse: true, // 👈 tillåter null/undefined-värden
+    match: [/^\S+@\S+\.\S+$/, "Ogiltig e-postadress"],
   }
 });
 

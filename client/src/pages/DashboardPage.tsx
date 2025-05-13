@@ -79,7 +79,7 @@ const DashboardPage = () => {
           typeof (error as { message: unknown }).message === "string"
         ) {
           const message = (error as { message: string }).message;
-  
+
           if (message === "forbidden") {
             localStorage.removeItem("token");
             navigate("/login");
@@ -93,12 +93,14 @@ const DashboardPage = () => {
         setLoading(false);
       }
     };
-  
+
     fetchApplications();
   }, [navigate]);
 
   const handleDelete = async (id: string) => {
-    const confirmed = window.confirm("Är du säker på att du vill ta bort ansökan?");
+    const confirmed = window.confirm(
+      "Är du säker på att du vill ta bort ansökan?"
+    );
     if (!confirmed) return;
 
     try {
@@ -152,7 +154,16 @@ const DashboardPage = () => {
         <div className="text-center sm:text-left">
           <h2 className="text-3xl font-bold">Din ansökningsöversikt</h2>
           {username && (
-            <p className="text-sm text-gray-700">Inloggad som: <strong>{username}</strong></p>
+            <p className="text-sm text-gray-700">
+              Inloggad som:{" "}
+              <Link
+                to="/profile"
+                className="font-semibold text-blue-600 hover:underline"
+                title="Gå till profilsida"
+              >
+                {username}
+              </Link>
+            </p>
           )}
         </div>
 
@@ -195,7 +206,9 @@ const DashboardPage = () => {
               key={status}
               className="bg-gray-100 p-4 rounded-lg shadow-md hover:shadow-lg hover:scale-105 transition-all duration-200 flex flex-col"
             >
-              <h3 className={`text-lg font-semibold mb-2 text-center ${statusStyles[status].text}`}>
+              <h3
+                className={`text-lg font-semibold mb-2 text-center ${statusStyles[status].text}`}
+              >
                 <div className="flex justify-center items-center">
                   {statusStyles[status].icon()} {status}
                 </div>
@@ -205,12 +218,18 @@ const DashboardPage = () => {
                 {applications
                   .filter((app) => app.status === status)
                   .filter((app) =>
-                    `${app.company} ${app.role}`.toLowerCase().includes(searchTerm.toLowerCase())
+                    `${app.company} ${app.role}`
+                      .toLowerCase()
+                      .includes(searchTerm.toLowerCase())
                   )
                   .sort((a, b) => {
                     const now = new Date().getTime();
-                    const aDeadline = a.deadline ? new Date(a.deadline).getTime() : Infinity;
-                    const bDeadline = b.deadline ? new Date(b.deadline).getTime() : Infinity;
+                    const aDeadline = a.deadline
+                      ? new Date(a.deadline).getTime()
+                      : Infinity;
+                    const bDeadline = b.deadline
+                      ? new Date(b.deadline).getTime()
+                      : Infinity;
 
                     if (a.favorite && !b.favorite) return -1;
                     if (!a.favorite && b.favorite) return 1;
@@ -221,9 +240,9 @@ const DashboardPage = () => {
                     if (!aPassed && bPassed) return 1;
 
                     return (
-                        new Date(b.createdAt ?? 0).getTime() -
-                        new Date(a.createdAt ?? 0).getTime()
-                      );
+                      new Date(b.createdAt ?? 0).getTime() -
+                      new Date(a.createdAt ?? 0).getTime()
+                    );
                   })
                   .map((app) => (
                     <li
@@ -244,7 +263,9 @@ const DashboardPage = () => {
                           )}
                         </Link>
                         <button
-                          onClick={() => handleToggleFavorite(app._id, app.favorite || false)}
+                          onClick={() =>
+                            handleToggleFavorite(app._id, app.favorite || false)
+                          }
                           className="ml-2"
                           title="Favorit"
                         >
@@ -257,12 +278,15 @@ const DashboardPage = () => {
                       </div>
 
                       <span className="text-xs text-gray-500">
-  {new Date(app.createdAt ?? "").toLocaleDateString("sv-SE", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-  })}
-</span>
+                        {new Date(app.createdAt ?? "").toLocaleDateString(
+                          "sv-SE",
+                          {
+                            day: "2-digit",
+                            month: "short",
+                            year: "numeric",
+                          }
+                        )}
+                      </span>
 
                       {app.deadline && (
                         <span
