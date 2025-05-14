@@ -93,5 +93,34 @@ const getProfile = async (req, res) => {
     res.status(500).json({ error: "Kunde inte hämta profil." });
   }
 };
+const updateUsername = async (req, res) => {
+  const { username } = req.body;
 
-module.exports = { signup, login, updateEmail, getProfile };
+  try {
+    // Kolla om någon redan har det användarnamnet
+    const existingUser = await User.findOne({ username });
+    if (existingUser) {
+      return res.status(400).json({ error: "Användarnamnet är redan upptaget." });
+    }
+
+    const updatedUser = await User.findByIdAndUpdate(
+      req.userId,
+      { username },
+      { new: true, runValidators: true }
+    );
+
+    if (!updatedUser) {
+      return res.status(404).json({ error: "Användare hittades inte." });
+    }
+
+    res.status(200).json({
+      message: "Användarnamnet har uppdaterats.",
+      username: updatedUser.username,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(400).json({ error: "Kunde inte uppdatera användarnamnet." });
+  }
+};
+
+module.exports = { signup, login, updateEmail, getProfile, updateUsername };

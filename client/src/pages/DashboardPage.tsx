@@ -25,6 +25,16 @@ const getUsernameFromToken = (token: string | null): string | null => {
 };
 
 const statuses = ["Skickad", "Pågående", "Intervju", "Avslutat", "Nej tack"];
+const getStats = (apps: Application[]) => {
+  return {
+    total: apps.length,
+    skickade: apps.filter(app => app.status === "Skickad").length,
+    pagaende: apps.filter(app => app.status === "Pågående").length,
+    intervju: apps.filter(app => app.status === "Intervju").length,
+    avslutat: apps.filter(app => app.status === "Avslutat").length,
+    favoriter: apps.filter(app => app.favorite).length,
+  };
+};
 
 const statusStyles: Record<
   string,
@@ -61,6 +71,7 @@ const DashboardPage = () => {
   const [applications, setApplications] = useState<Application[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
+  const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
   const navigate = useNavigate();
 
   const token = localStorage.getItem("token");
@@ -71,23 +82,12 @@ const DashboardPage = () => {
       try {
         const data = await getApplications();
         setApplications(data);
-      } catch (error: unknown) {
-        if (
-          typeof error === "object" &&
-          error !== null &&
-          "message" in error &&
-          typeof (error as { message: unknown }).message === "string"
-        ) {
-          const message = (error as { message: string }).message;
-
-          if (message === "forbidden") {
-            localStorage.removeItem("token");
-            navigate("/login");
-          } else {
-            toast.error("Kunde inte hämta ansökningar.");
-          }
+      } catch (error: any) {
+        if (error.message === "forbidden") {
+          localStorage.removeItem("token");
+          navigate("/login");
         } else {
-          toast.error("Ett oväntat fel inträffade.");
+          toast.error("Kunde inte hämta ansökningar.");
         }
       } finally {
         setLoading(false);
@@ -98,10 +98,7 @@ const DashboardPage = () => {
   }, [navigate]);
 
   const handleDelete = async (id: string) => {
-    const confirmed = window.confirm(
-      "Är du säker på att du vill ta bort ansökan?"
-    );
-    if (!confirmed) return;
+    if (!window.confirm("Är du säker på att du vill ta bort ansökan?")) return;
 
     try {
       const token = localStorage.getItem("token");
@@ -117,7 +114,6 @@ const DashboardPage = () => {
       setApplications((prev) => prev.filter((app) => app._id !== id));
       toast.success("Ansökan borttagen!");
     } catch (err) {
-      console.error("Fel vid borttagning:", err);
       toast.error("Misslyckades med att ta bort ansökan");
     }
   };
@@ -142,24 +138,24 @@ const DashboardPage = () => {
         )
       );
     } catch (err) {
-      console.error("Fel vid favorituppdatering:", err);
       toast.error("Misslyckades med att uppdatera favoritstatus");
     }
   };
 
   return (
-    <div className="p-6">
+    <div className="p-4 sm:p-6">
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4">
         <div className="text-center sm:text-left">
-          <h2 className="text-3xl font-bold">Din ansökningsöversikt</h2>
+          <h2 className="text-2xl sm:text-3xl font-bold">
+            Din ansökningsöversikt
+          </h2>
           {username && (
             <p className="text-sm text-gray-700">
               Inloggad som:{" "}
               <Link
                 to="/profile"
                 className="font-semibold text-blue-600 hover:underline"
-                title="Gå till profilsida"
               >
                 {username}
               </Link>
@@ -167,23 +163,32 @@ const DashboardPage = () => {
           )}
         </div>
 
-        <div className="flex flex-col sm:flex-row gap-3 items-center">
+        <div className="w-full sm:w-auto flex flex-col sm:flex-row gap-3 items-center">
           <input
             type="text"
             placeholder="🔍 Sök företag eller roll..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="border px-3 py-1.5 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+            className="w-full sm:w-64 border px-3 py-2 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
           />
           <button
             onClick={() => {
               localStorage.removeItem("token");
               navigate("/login");
             }}
-            className="bg-red-500 hover:bg-red-600 text-white px-4 py-1.5 rounded shadow text-sm"
+            className="w-full sm:w-auto bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded shadow text-sm"
           >
             Logga ut
           </button>
+          <label className="flex items-center gap-2 text-sm text-gray-700">
+  <input
+    type="checkbox"
+    checked={showFavoritesOnly}
+    onChange={() => setShowFavoritesOnly((prev) => !prev)}
+    className="accent-yellow-500"
+  />
+  Visa endast favoriter
+</label>
         </div>
       </div>
 
@@ -191,12 +196,38 @@ const DashboardPage = () => {
       <div className="flex justify-center mb-6">
         <Link
           to="/new-application"
-          className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded shadow transition"
+          className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded shadow transition w-full sm:w-auto text-center"
         >
           ➕ Lägg till ny ansökan
         </Link>
       </div>
-
+          {/* Statistikpanel */}
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 sm:gap-4 text-sm mb-6">
+  <div className="bg-white rounded shadow p-2 sm:p-4 text-center">
+    <p className="text-gray-500 text-xs sm:text-sm">Totalt antal ansökningar</p>
+    <p className="text-base sm:text-xl font-bold">{getStats(applications).total}</p>
+  </div>
+  <div className="bg-white rounded shadow p-2 sm:p-4 text-center">
+    <p className="text-gray-500 text-xs sm:text-sm">Skickade</p>
+    <p className="text-base sm:text-xl font-bold">{getStats(applications).skickade}</p>
+  </div>
+  <div className="bg-white rounded shadow p-2 sm:p-4 text-center">
+    <p className="text-gray-500 text-xs sm:text-sm">Pågående</p>
+    <p className="text-base sm:text-xl font-bold">{getStats(applications).pagaende}</p>
+  </div>
+  <div className="bg-white rounded shadow p-2 sm:p-4 text-center">
+    <p className="text-gray-500 text-xs sm:text-sm">Till intervju</p>
+    <p className="text-base sm:text-xl font-bold">{getStats(applications).intervju}</p>
+  </div>
+  <div className="bg-white rounded shadow p-2 sm:p-4 text-center">
+    <p className="text-gray-500 text-xs sm:text-sm">Avslutade</p>
+    <p className="text-base sm:text-xl font-bold">{getStats(applications).avslutat}</p>
+  </div>
+  <div className="bg-white rounded shadow p-2 sm:p-4 text-center">
+    <p className="text-gray-500 text-xs sm:text-sm">Favoritmarkerade</p>
+    <p className="text-base sm:text-xl font-bold">{getStats(applications).favoriter}</p>
+  </div>
+</div>
       {loading ? (
         <Spinner />
       ) : (
@@ -204,7 +235,7 @@ const DashboardPage = () => {
           {statuses.map((status) => (
             <div
               key={status}
-              className="bg-gray-100 p-4 rounded-lg shadow-md hover:shadow-lg hover:scale-105 transition-all duration-200 flex flex-col"
+              className="bg-gray-100 p-4 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 flex flex-col"
             >
               <h3
                 className={`text-lg font-semibold mb-2 text-center ${statusStyles[status].text}`}
@@ -218,12 +249,11 @@ const DashboardPage = () => {
                 {applications
                   .filter((app) => app.status === status)
                   .filter((app) =>
-                    `${app.company} ${app.role}`
-                      .toLowerCase()
-                      .includes(searchTerm.toLowerCase())
+                    `${app.company} ${app.role}`.toLowerCase().includes(searchTerm.toLowerCase())
                   )
+                  .filter((app) => (showFavoritesOnly ? app.favorite : true))
                   .sort((a, b) => {
-                    const now = new Date().getTime();
+                    const now = Date.now();
                     const aDeadline = a.deadline
                       ? new Date(a.deadline).getTime()
                       : Infinity;

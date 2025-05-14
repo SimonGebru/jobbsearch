@@ -21,14 +21,16 @@ const NewApplicationPage: React.FC = () => {
     status: "Skickad",
     contactPerson: "",
     notes: "",
-    deadline: "", 
+    deadline: "",
   });
 
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
+    >
   ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
@@ -65,104 +67,111 @@ const NewApplicationPage: React.FC = () => {
   if (loading) return <Spinner />;
 
   return (
-    <div className="max-w-xl mx-auto p-6">
-      <h2 className="text-3xl font-bold mb-6 text-center">Ny jobbansökan</h2>
-  
-      <form onSubmit={handleSubmit} className="space-y-4 bg-white p-6 rounded-lg shadow">
-        <div>
-          <label className="block font-semibold mb-1">Företag</label>
-          <input
-            type="text"
-            name="company"
-            value={formData.company}
-            onChange={handleChange}
-            required
-            className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
-          />
-        </div>
-  
-        <div>
-          <label className="block font-semibold mb-1">Roll</label>
-          <input
-            type="text"
-            name="role"
-            value={formData.role}
-            onChange={handleChange}
-            required
-            className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
-          />
-        </div>
-  
-        <div>
-          <label className="block font-semibold mb-1">Plats</label>
-          <input
-            type="text"
-            name="location"
-            value={formData.location}
-            onChange={handleChange}
-            className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
-          />
-        </div>
-  
-        <div>
-          <label className="block font-semibold mb-1">Kontaktperson</label>
-          <input
-            type="text"
-            name="contactPerson"
-            value={formData.contactPerson}
-            onChange={handleChange}
-            placeholder="Namn på kontaktperson"
-            className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
-          />
-        </div>
-  
-        <div>
-          <label className="block font-semibold mb-1">Anteckningar</label>
-          <textarea
-            name="notes"
-            value={formData.notes}
-            onChange={handleChange}
-            rows={4}
-            placeholder="Valfria anteckningar..."
-            className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400 resize-none"
-          />
-        </div>
-  
-        <div>
-          <label className="block font-semibold mb-1">Status</label>
-          <select
-            name="status"
-            value={formData.status}
-            onChange={handleChange}
-            className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
+    <div className="min-h-screen bg-gray-100 flex items-center justify-center px-4 py-10">
+      <div className="w-full max-w-xl bg-white p-6 sm:p-8 rounded-lg shadow">
+        <h2 className="text-3xl font-bold mb-6 text-center">
+          Ny jobbansökan
+        </h2>
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium mb-1">Företag</label>
+            <input
+              type="text"
+              name="company"
+              value={formData.company}
+              onChange={handleChange}
+              required
+              className="w-full text-sm border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-1">Roll</label>
+            <input
+              type="text"
+              name="role"
+              value={formData.role}
+              onChange={handleChange}
+              required
+              className="w-full text-sm border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-1">Plats</label>
+            <input
+              type="text"
+              name="location"
+              value={formData.location}
+              onChange={handleChange}
+              className="w-full text-sm border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-1">
+              Kontaktperson
+            </label>
+            <input
+              type="text"
+              name="contactPerson"
+              value={formData.contactPerson}
+              onChange={handleChange}
+              placeholder="Namn på kontaktperson"
+              className="w-full text-sm border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-1">
+              Anteckningar
+            </label>
+            <textarea
+              name="notes"
+              value={formData.notes}
+              onChange={handleChange}
+              rows={4}
+              placeholder="Valfria anteckningar..."
+              className="w-full text-sm border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400 resize-none"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-1">Status</label>
+            <select
+              name="status"
+              value={formData.status}
+              onChange={handleChange}
+              className="w-full text-sm border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
+            >
+              <option value="Skickad">Skickad</option>
+              <option value="Pågående">Pågående</option>
+              <option value="Intervju">Intervju</option>
+              <option value="Avslutat">Avslutat</option>
+              <option value="Nej tack">Nej tack</option>
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-1">Deadline</label>
+            <input
+              type="date"
+              name="deadline"
+              value={formData.deadline}
+              onChange={handleChange}
+              className="w-full text-sm border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
+            />
+          </div>
+
+          <button
+            type="submit"
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 rounded shadow transition"
           >
-            <option value="Skickad">Skickad</option>
-            <option value="Pågående">Pågående</option>
-            <option value="Intervju">Intervju</option>
-            <option value="Avslutat">Avslutat</option>
-            <option value="Nej tack">Nej tack</option>
-          </select>
-        </div>
-  
-        {/* Nytt fält för deadline */}
-        <div>
-          <label className="block font-semibold mb-1">Deadline</label>
-          <input
-            type="date"
-            name="deadline"
-            value={formData.deadline}
-            onChange={handleChange}
-            className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
-          />
-        </div>
-  
-        <button
-          type="submit"
-          className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 rounded shadow transition"
-        >
-          Skapa ansökan
-        </button>
-      </form>
+            Skapa ansökan
+          </button>
+        </form>
+      </div>
     </div>
   );
 };

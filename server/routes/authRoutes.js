@@ -1,6 +1,12 @@
 const express = require("express");
 const router = express.Router();
-const { signup, login, updateEmail, getProfile } = require("../controllers/authController"); // 👈 lägg till
+const {
+    signup,
+    login,
+    updateEmail,
+    getProfile,
+    updateUsername, // 👈 lägg till detta!
+  } = require("../controllers/authController");
 const {
   sendResetEmail,
   resetPassword,
@@ -22,5 +28,5 @@ router.post("/reset-password/:token", resetPassword);
 // 🔐 PROFIL
 router.get("/profile", requireAuth, getProfile); // 👈 lägg till denna
 router.patch("/profile", requireAuth, updateEmail); // 👈 lägg till denna
-
+router.patch("/username", requireAuth, updateUsername);
 module.exports = router;
