@@ -3,7 +3,7 @@ import { toast } from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
 
 const ProfilePage: React.FC = () => {
-  const [username, setUsername] = useState("");
+  const [ ,setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [newUsername, setNewUsername] = useState("");
   const [password, setPassword] = useState("");

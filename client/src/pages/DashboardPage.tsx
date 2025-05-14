@@ -35,6 +35,14 @@ const getStats = (apps: Application[]) => {
     favoriter: apps.filter(app => app.favorite).length,
   };
 };
+const isDeadlineSoon = (deadline: string | undefined): boolean => {
+  if (!deadline) return false;
+  const deadlineDate = new Date(deadline);
+  const today = new Date();
+  const diff = deadlineDate.getTime() - today.getTime();
+  const daysLeft = diff / (1000 * 60 * 60 * 24);
+  return daysLeft <= 3 && daysLeft >= 0;
+};
 
 const statusStyles: Record<
   string,
@@ -319,21 +327,27 @@ const DashboardPage = () => {
                       </span>
 
                       {app.deadline && (
-                        <span
-                          className={`text-xs ${
-                            new Date(app.deadline) < new Date()
-                              ? "text-red-600"
-                              : "text-gray-500"
-                          }`}
-                        >
-                          Deadline:{" "}
-                          {new Date(app.deadline).toLocaleDateString("sv-SE", {
-                            day: "2-digit",
-                            month: "short",
-                            year: "numeric",
-                          })}
-                        </span>
-                      )}
+  <span
+    className={`text-xs ${
+      new Date(app.deadline) < new Date()
+        ? "text-red-600"
+        : isDeadlineSoon(app.deadline)
+        ? "text-yellow-600"
+        : "text-gray-500"
+    }`}
+  >
+    {new Date(app.deadline) < new Date()
+      ? "⛔ Deadline passerad: "
+      : isDeadlineSoon(app.deadline)
+      ? "⏰ Deadline snart: "
+      : "Deadline: "}
+    {new Date(app.deadline).toLocaleDateString("sv-SE", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+    })}
+  </span>
+)}
 
                       <button
                         onClick={() => handleDelete(app._id)}
