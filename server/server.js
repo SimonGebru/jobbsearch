@@ -14,8 +14,8 @@ app.use(cors());
 app.use(express.json());
 
 // Importera routes
-const applicationRoutes = require("./routes/applicationRoutes");
-const authRoutes = require("./routes/authRoutes");
+const applicationRoutes = require("../api/routes/applicationRoutes");
+const authRoutes = require("../api/routes/authRoutes");
 
 // Koppla routes
 app.use("/api/applications", applicationRoutes);

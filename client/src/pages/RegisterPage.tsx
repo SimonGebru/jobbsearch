@@ -1,32 +1,26 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-hot-toast";
+import { registerUser } from "../services/auth";
 
 const RegisterPage: React.FC = () => {
   const [username, setUsername] = useState("");
+  const [email, setEmail]     = useState("");
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
+    setLoading(true);
     try {
-      const res = await fetch("http://localhost:5001/api/auth/signup", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, password }),
-      });
-
-      if (!res.ok) throw new Error("Registrering misslyckades");
-
+      await registerUser(username, email, password);
       toast.success("Användare skapad! Logga in nu.");
       navigate("/login");
-    } catch (err: unknown) {
-      if (err instanceof Error) {
-        toast.error(err.message);
-      } else {
-        toast.error("Något gick fel vid registrering");
-      }
+    } catch (err: any) {
+      toast.error(err?.message || "Något gick fel vid registrering");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -50,6 +44,17 @@ const RegisterPage: React.FC = () => {
         </div>
 
         <div>
+          <label className="block text-sm font-medium mb-1">E-post</label>
+          <input
+            type="email"
+            required
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className="w-full text-sm border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
+          />
+        </div>
+
+        <div>
           <label className="block text-sm font-medium mb-1">Lösenord</label>
           <input
             type="password"
@@ -62,9 +67,10 @@ const RegisterPage: React.FC = () => {
 
         <button
           type="submit"
+          disabled={loading}
           className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded shadow"
         >
-          Registrera
+          {loading ? "Skapar..." : "Registrera"}
         </button>
 
         <p className="text-center text-sm text-gray-600 mt-2">

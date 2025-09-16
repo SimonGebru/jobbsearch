@@ -12,15 +12,17 @@ const LoginPage: React.FC = () => {
     e.preventDefault();
 
     try {
-      const token = await loginUser(username, password);
-      localStorage.setItem("token", token);
+      // loginUser sköter både anropet och lagring av token
+      const data = await loginUser(username, password);
+
+      // Vill du ändå spara username separat:
       localStorage.setItem("username", username);
 
       toast.success("Inloggning lyckades!");
       navigate("/dashboard");
-    } catch (error) {
+    } catch (error: any) {
       console.error("Fel vid inloggning:", error);
-      toast.error("Fel användarnamn eller lösenord");
+      toast.error(error.message || "Fel användarnamn eller lösenord");
     }
   };
 

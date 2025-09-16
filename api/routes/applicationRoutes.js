@@ -7,7 +7,7 @@ const {
   updateApplication,
   deleteApplication,
   partialUpdateApplication,
-} = require("../../server/controllers/applicationController");
+} = require("../controllers/applicationController");
 
 const requireAuth = require("../middleware/auth");
 

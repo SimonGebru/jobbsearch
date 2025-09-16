@@ -1,21 +1,30 @@
+
 import type { Application } from "../types/application";
+
+const BASE = import.meta.env.VITE_API_URL || "";
+
 
 export const getApplications = async (): Promise<Application[]> => {
   const token = localStorage.getItem("token");
 
-  const res = await fetch("http://localhost:5001/api/applications", {
+  if (!token) {
+    throw new Error("Ingen token hittad. Användaren är inte inloggad.");
+  }
+
+  const res = await fetch(`${BASE}/api/applications`, {
     headers: {
       Authorization: `Bearer ${token}`,
     },
   });
 
   if (res.status === 403) {
-    throw new Error("forbidden"); // Specialfall som vi kan känna igen
+    throw new Error("Åtkomst nekad (forbidden). Logga in igen.");
   }
 
   if (!res.ok) {
-    throw new Error("Kunde inte hämta ansökningar");
+    const text = await res.text().catch(() => "");
+    throw new Error(text || "Kunde inte hämta ansökningar");
   }
 
-  return await res.json();
+  return (await res.json()) as Application[];
 };

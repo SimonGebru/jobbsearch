@@ -6,11 +6,11 @@ const {
   updateEmail,
   getProfile,
   updateUsername, // 👈 lägg till detta!
-} = require("../../server/controllers/authController");
+} = require("../../functions/controllers/authController");
 const {
   sendResetEmail,
   resetPassword,
-} = require("../../server/controllers/passwordController");
+} = require("../controllers/passwordController");
 const requireAuth = require("../middleware/auth"); // 👈 se till att du importerar den
 
 // Registrera ny användare
