@@ -6,12 +6,12 @@ const ResetPasswordPage: React.FC = () => {
   const { token } = useParams(); // 👈 plockar ut token från URL
   const navigate = useNavigate();
   const [password, setPassword] = useState("");
-
+  const BASE = import.meta.env.VITE_API_URL || "";
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     try {
-      const res = await fetch(`http://localhost:5001/api/auth/reset-password/${token}`, {
+      const res = await fetch(`${BASE}/api/auth/reset-password/${token}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ password }),

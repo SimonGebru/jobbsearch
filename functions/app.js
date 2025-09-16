@@ -15,9 +15,11 @@ const authRoutes = require("../api/routes/authRoutes");
 app.use("/api/applications", applicationRoutes);
 app.use("/api/auth", authRoutes);
 
-const MONGO_URI =
-  process.env.MONGO_URI ||
-  "mongodb+srv://simongeb:Lemlem%2C24@airbean.gmpzz8u.mongodb.net/jobsearch?retryWrites=true&w=majority&appName=airbean";
+const MONGO_URI = process.env.MONGO_URI;
+if (!MONGO_URI) {
+  console.error("❌ MONGO_URI saknas i env");
+  process.exit(1);
+}
 
 const JWT_SECRET = process.env.JWT_SECRET || "superhemligjwtkod123";
 const ETHEREAL_USER =

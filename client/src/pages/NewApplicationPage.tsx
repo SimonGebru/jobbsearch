@@ -13,6 +13,8 @@ interface NewApplicationData {
   deadline?: string;
 }
 
+const BASE = import.meta.env.VITE_API_URL || "";
+
 const NewApplicationPage: React.FC = () => {
   const [formData, setFormData] = useState<NewApplicationData>({
     company: "",
@@ -28,9 +30,7 @@ const NewApplicationPage: React.FC = () => {
   const navigate = useNavigate();
 
   const handleChange = (
-    e: React.ChangeEvent<
-      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
-    >
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
   ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
@@ -39,11 +39,11 @@ const NewApplicationPage: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-
+  
     try {
       const token = localStorage.getItem("token");
-
-      const res = await fetch("http://localhost:5001/api/applications", {
+  
+      const res = await fetch(`${BASE}/api/applications`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -51,9 +51,9 @@ const NewApplicationPage: React.FC = () => {
         },
         body: JSON.stringify(formData),
       });
-
+  
       if (!res.ok) throw new Error("Något gick fel vid skapandet av ansökan");
-
+  
       toast.success("Ansökan skapad!");
       navigate("/dashboard");
     } catch (error) {
@@ -69,9 +69,7 @@ const NewApplicationPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-gray-100 flex items-center justify-center px-4 py-10">
       <div className="w-full max-w-xl bg-white p-6 sm:p-8 rounded-lg shadow">
-        <h2 className="text-3xl font-bold mb-6 text-center">
-          Ny jobbansökan
-        </h2>
+        <h2 className="text-3xl font-bold mb-6 text-center">Ny jobbansökan</h2>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
@@ -110,9 +108,7 @@ const NewApplicationPage: React.FC = () => {
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-1">
-              Kontaktperson
-            </label>
+            <label className="block text-sm font-medium mb-1">Kontaktperson</label>
             <input
               type="text"
               name="contactPerson"
@@ -124,9 +120,7 @@ const NewApplicationPage: React.FC = () => {
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-1">
-              Anteckningar
-            </label>
+            <label className="block text-sm font-medium mb-1">Anteckningar</label>
             <textarea
               name="notes"
               value={formData.notes}

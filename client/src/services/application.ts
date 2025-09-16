@@ -1,4 +1,3 @@
-
 import type { Application } from "../types/application";
 
 const BASE = import.meta.env.VITE_API_URL || "";
@@ -11,11 +10,11 @@ export const getApplications = async (): Promise<Application[]> => {
     throw new Error("Ingen token hittad. Användaren är inte inloggad.");
   }
 
-  const res = await fetch(`${BASE}/api/applications`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
+  const headers: Record<string, string> = {
+    Authorization: `Bearer ${token}`,
+  };
+
+  const res = await fetch(`${BASE}/api/applications`, { headers });
 
   if (res.status === 403) {
     throw new Error("Åtkomst nekad (forbidden). Logga in igen.");

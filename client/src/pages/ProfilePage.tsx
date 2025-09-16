@@ -2,8 +2,10 @@ import React, { useEffect, useState } from "react";
 import { toast } from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
 
+const BASE = import.meta.env.VITE_API_URL || "";
+
 const ProfilePage: React.FC = () => {
-  const [ ,setUsername] = useState("");
+  const [currentUsername, setCurrentUsername] = useState("");
   const [email, setEmail] = useState("");
   const [newUsername, setNewUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -13,25 +15,19 @@ const ProfilePage: React.FC = () => {
     const token = localStorage.getItem("token");
     const storedUsername = localStorage.getItem("username");
     if (storedUsername) {
-      setUsername(storedUsername);
+      setCurrentUsername(storedUsername);
       setNewUsername(storedUsername);
     }
 
     const fetchEmail = async () => {
       try {
-        const res = await fetch("http://localhost:5001/api/auth/profile", {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+        const res = await fetch(`${BASE}/api/auth/profile`, {
+          headers: { Authorization: `Bearer ${token}` },
         });
-
         const data = await res.json();
-        if (res.ok) {
-          setEmail(data.email || "");
-        } else {
-          throw new Error(data.error || "Kunde inte hämta e-post.");
-        }
-      } catch (err) {
+        if (!res.ok) throw new Error(data?.error || "Kunde inte hämta profil.");
+        setEmail(data.email || "");
+      } catch {
         toast.error("Något gick fel vid hämtning av profilinfo.");
       }
     };
@@ -42,26 +38,51 @@ const ProfilePage: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const token = localStorage.getItem("token");
+    if (!token) {
+      toast.error("Du är inte inloggad.");
+      return;
+    }
 
     try {
-      const res = await fetch("http://localhost:5001/api/auth/profile", {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ email, password, username: newUsername }),
-      });
+      // 1) Uppdatera email/lösen (skicka bara med om de är ifyllda)
+      const profilePayload: Record<string, string> = {};
+      if (email) profilePayload.email = email;
+      if (password) profilePayload.password = password;
 
-      const data = await res.json();
-      if (res.ok) {
-        toast.success("Profilen uppdaterad!");
-        localStorage.setItem("username", newUsername);
-        navigate("/dashboard");
-      } else {
-        throw new Error(data.error || "Uppdatering misslyckades.");
+      if (Object.keys(profilePayload).length > 0) {
+        const res = await fetch(`${BASE}/api/auth/profile`, {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify(profilePayload),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data?.error || "Uppdatering av profil misslyckades.");
       }
+
+      // 2) Uppdatera username om det ändrats
+      if (newUsername && newUsername !== currentUsername) {
+        const res = await fetch(`${BASE}/api/auth/username`, {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ username: newUsername }),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data?.error || "Uppdatering av användarnamn misslyckades.");
+        localStorage.setItem("username", data.username || newUsername);
+        setCurrentUsername(data.username || newUsername);
+      }
+
+      toast.success("Profilen uppdaterad!");
+      setPassword(""); // rensa lösenordsfältet
+      navigate("/dashboard");
     } catch (err) {
+      console.error(err);
       toast.error("Kunde inte uppdatera profilen.");
     }
   };
@@ -102,6 +123,7 @@ const ProfilePage: React.FC = () => {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
+              placeholder="Lämna tomt för att behålla"
             />
           </div>
 

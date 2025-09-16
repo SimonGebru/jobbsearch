@@ -14,6 +14,8 @@ import {
 import { toast } from "react-hot-toast";
 import Spinner from "../components/Spinner";
 
+const BASE = import.meta.env.VITE_API_URL || "";
+
 const getUsernameFromToken = (token: string | null): string | null => {
   if (!token) return null;
   try {
@@ -24,17 +26,17 @@ const getUsernameFromToken = (token: string | null): string | null => {
   }
 };
 
-const statuses = ["Skickad", "Pågående", "Intervju", "Avslutat", "Nej tack"];
-const getStats = (apps: Application[]) => {
-  return {
-    total: apps.length,
-    skickade: apps.filter(app => app.status === "Skickad").length,
-    pagaende: apps.filter(app => app.status === "Pågående").length,
-    intervju: apps.filter(app => app.status === "Intervju").length,
-    avslutat: apps.filter(app => app.status === "Avslutat").length,
-    favoriter: apps.filter(app => app.favorite).length,
-  };
-};
+const statuses = ["Skickad", "Pågående", "Intervju", "Avslutat", "Nej tack"] as const;
+
+const getStats = (apps: Application[]) => ({
+  total: apps.length,
+  skickade: apps.filter((app) => app.status === "Skickad").length,
+  pagaende: apps.filter((app) => app.status === "Pågående").length,
+  intervju: apps.filter((app) => app.status === "Intervju").length,
+  avslutat: apps.filter((app) => app.status === "Avslutat").length,
+  favoriter: apps.filter((app) => app.favorite).length,
+});
+
 const isDeadlineSoon = (deadline: string | undefined): boolean => {
   if (!deadline) return false;
   const deadlineDate = new Date(deadline);
@@ -45,7 +47,7 @@ const isDeadlineSoon = (deadline: string | undefined): boolean => {
 };
 
 const statusStyles: Record<
-  string,
+  (typeof statuses)[number],
   { bg: string; text: string; icon: () => JSX.Element }
 > = {
   Skickad: {
@@ -110,16 +112,23 @@ const DashboardPage = () => {
 
     try {
       const token = localStorage.getItem("token");
-      const res = await fetch(`http://localhost:5001/api/applications/${id}`, {
+      if (!token) {
+        toast.error("Du är inte inloggad.");
+        navigate("/login");
+        return;
+      }
+
+      const res = await fetch(`${BASE}/api/applications/${id}`, {
         method: "DELETE",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { Authorization: `Bearer ${token}` },
       });
 
-      if (!res.ok) throw new Error("Kunde inte ta bort ansökan");
+      if (!res.ok) {
+        const txt = await res.text().catch(() => "");
+        throw new Error(txt || "Kunde inte ta bort ansökan");
+      }
 
-      setApplications((prev) => prev.filter((app) => app._id !== id));
+      setApplications((prev) => prev.filter((app) => app._id === id ? false : true));
       toast.success("Ansökan borttagen!");
     } catch (err) {
       toast.error("Misslyckades med att ta bort ansökan");
@@ -129,7 +138,13 @@ const DashboardPage = () => {
   const handleToggleFavorite = async (id: string, current: boolean) => {
     try {
       const token = localStorage.getItem("token");
-      const res = await fetch(`http://localhost:5001/api/applications/${id}`, {
+      if (!token) {
+        toast.error("Du är inte inloggad.");
+        navigate("/login");
+        return;
+      }
+
+      const res = await fetch(`${BASE}/api/applications/${id}`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
@@ -138,7 +153,10 @@ const DashboardPage = () => {
         body: JSON.stringify({ favorite: !current }),
       });
 
-      if (!res.ok) throw new Error("Kunde inte uppdatera favoritstatus");
+      if (!res.ok) {
+        const txt = await res.text().catch(() => "");
+        throw new Error(txt || "Kunde inte uppdatera favoritstatus");
+      }
 
       setApplications((prev) =>
         prev.map((app) =>
@@ -155,16 +173,11 @@ const DashboardPage = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4">
         <div className="text-center sm:text-left">
-          <h2 className="text-2xl sm:text-3xl font-bold">
-            Din ansökningsöversikt
-          </h2>
+          <h2 className="text-2xl sm:text-3xl font-bold">Din ansökningsöversikt</h2>
           {username && (
             <p className="text-sm text-gray-700">
               Inloggad som:{" "}
-              <Link
-                to="/profile"
-                className="font-semibold text-blue-600 hover:underline"
-              >
+              <Link to="/profile" className="font-semibold text-blue-600 hover:underline">
                 {username}
               </Link>
             </p>
@@ -188,15 +201,16 @@ const DashboardPage = () => {
           >
             Logga ut
           </button>
+
           <label className="flex items-center gap-2 text-sm text-gray-700">
-  <input
-    type="checkbox"
-    checked={showFavoritesOnly}
-    onChange={() => setShowFavoritesOnly((prev) => !prev)}
-    className="accent-yellow-500"
-  />
-  Visa endast favoriter
-</label>
+            <input
+              type="checkbox"
+              checked={showFavoritesOnly}
+              onChange={() => setShowFavoritesOnly((prev) => !prev)}
+              className="accent-yellow-500"
+            />
+            Visa endast favoriter
+          </label>
         </div>
       </div>
 
@@ -209,33 +223,35 @@ const DashboardPage = () => {
           ➕ Lägg till ny ansökan
         </Link>
       </div>
-          {/* Statistikpanel */}
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 sm:gap-4 text-sm mb-6">
-  <div className="bg-white rounded shadow p-2 sm:p-4 text-center">
-    <p className="text-gray-500 text-xs sm:text-sm">Totalt antal ansökningar</p>
-    <p className="text-base sm:text-xl font-bold">{getStats(applications).total}</p>
-  </div>
-  <div className="bg-white rounded shadow p-2 sm:p-4 text-center">
-    <p className="text-gray-500 text-xs sm:text-sm">Skickade</p>
-    <p className="text-base sm:text-xl font-bold">{getStats(applications).skickade}</p>
-  </div>
-  <div className="bg-white rounded shadow p-2 sm:p-4 text-center">
-    <p className="text-gray-500 text-xs sm:text-sm">Pågående</p>
-    <p className="text-base sm:text-xl font-bold">{getStats(applications).pagaende}</p>
-  </div>
-  <div className="bg-white rounded shadow p-2 sm:p-4 text-center">
-    <p className="text-gray-500 text-xs sm:text-sm">Till intervju</p>
-    <p className="text-base sm:text-xl font-bold">{getStats(applications).intervju}</p>
-  </div>
-  <div className="bg-white rounded shadow p-2 sm:p-4 text-center">
-    <p className="text-gray-500 text-xs sm:text-sm">Avslutade</p>
-    <p className="text-base sm:text-xl font-bold">{getStats(applications).avslutat}</p>
-  </div>
-  <div className="bg-white rounded shadow p-2 sm:p-4 text-center">
-    <p className="text-gray-500 text-xs sm:text-sm">Favoritmarkerade</p>
-    <p className="text-base sm:text-xl font-bold">{getStats(applications).favoriter}</p>
-  </div>
-</div>
+
+      {/* Statistikpanel */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 sm:gap-4 text-sm mb-6">
+        <div className="bg-white rounded shadow p-2 sm:p-4 text-center">
+          <p className="text-gray-500 text-xs sm:text-sm">Totalt antal ansökningar</p>
+          <p className="text-base sm:text-xl font-bold">{getStats(applications).total}</p>
+        </div>
+        <div className="bg-white rounded shadow p-2 sm:p-4 text-center">
+          <p className="text-gray-500 text-xs sm:text-sm">Skickade</p>
+          <p className="text-base sm:text-xl font-bold">{getStats(applications).skickade}</p>
+        </div>
+        <div className="bg-white rounded shadow p-2 sm:p-4 text-center">
+          <p className="text-gray-500 text-xs sm:text-sm">Pågående</p>
+          <p className="text-base sm:text-xl font-bold">{getStats(applications).pagaende}</p>
+        </div>
+        <div className="bg-white rounded shadow p-2 sm:p-4 text-center">
+          <p className="text-gray-500 text-xs sm:text-sm">Till intervju</p>
+          <p className="text-base sm:text-xl font-bold">{getStats(applications).intervju}</p>
+        </div>
+        <div className="bg-white rounded shadow p-2 sm:p-4 text-center">
+          <p className="text-gray-500 text-xs sm:text-sm">Avslutade</p>
+          <p className="text-base sm:text-xl font-bold">{getStats(applications).avslutat}</p>
+        </div>
+        <div className="bg-white rounded shadow p-2 sm:p-4 text-center">
+          <p className="text-gray-500 text-xs sm:text-sm">Favoritmarkerade</p>
+          <p className="text-base sm:text-xl font-bold">{getStats(applications).favoriter}</p>
+        </div>
+      </div>
+
       {loading ? (
         <Spinner />
       ) : (
@@ -245,9 +261,7 @@ const DashboardPage = () => {
               key={status}
               className="bg-gray-100 p-4 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 flex flex-col"
             >
-              <h3
-                className={`text-lg font-semibold mb-2 text-center ${statusStyles[status].text}`}
-              >
+              <h3 className={`text-lg font-semibold mb-2 text-center ${statusStyles[status].text}`}>
                 <div className="flex justify-center items-center">
                   {statusStyles[status].icon()} {status}
                 </div>
@@ -259,15 +273,12 @@ const DashboardPage = () => {
                   .filter((app) =>
                     `${app.company} ${app.role}`.toLowerCase().includes(searchTerm.toLowerCase())
                   )
-                  .filter((app) => (showFavoritesOnly ? app.favorite : true))
+                  .filter((app) => (showFavoritesOnly ? app.favorite : true)
+                  )
                   .sort((a, b) => {
                     const now = Date.now();
-                    const aDeadline = a.deadline
-                      ? new Date(a.deadline).getTime()
-                      : Infinity;
-                    const bDeadline = b.deadline
-                      ? new Date(b.deadline).getTime()
-                      : Infinity;
+                    const aDeadline = a.deadline ? new Date(a.deadline).getTime() : Infinity;
+                    const bDeadline = b.deadline ? new Date(b.deadline).getTime() : Infinity;
 
                     if (a.favorite && !b.favorite) return -1;
                     if (!a.favorite && b.favorite) return 1;
@@ -294,16 +305,11 @@ const DashboardPage = () => {
                         >
                           {app.company} – {app.role}
                           {app.notes && (
-                            <HiPencilAlt
-                              title="Har anteckningar"
-                              className="text-sm text-gray-600"
-                            />
+                            <HiPencilAlt title="Har anteckningar" className="text-sm text-gray-600" />
                           )}
                         </Link>
                         <button
-                          onClick={() =>
-                            handleToggleFavorite(app._id, app.favorite || false)
-                          }
+                          onClick={() => handleToggleFavorite(app._id, app.favorite || false)}
                           className="ml-2"
                           title="Favorit"
                         >
@@ -316,38 +322,35 @@ const DashboardPage = () => {
                       </div>
 
                       <span className="text-xs text-gray-500">
-                        {new Date(app.createdAt ?? "").toLocaleDateString(
-                          "sv-SE",
-                          {
-                            day: "2-digit",
-                            month: "short",
-                            year: "numeric",
-                          }
-                        )}
+                        {new Date(app.createdAt ?? "").toLocaleDateString("sv-SE", {
+                          day: "2-digit",
+                          month: "short",
+                          year: "numeric",
+                        })}
                       </span>
 
                       {app.deadline && (
-  <span
-    className={`text-xs ${
-      new Date(app.deadline) < new Date()
-        ? "text-red-600"
-        : isDeadlineSoon(app.deadline)
-        ? "text-yellow-600"
-        : "text-gray-500"
-    }`}
-  >
-    {new Date(app.deadline) < new Date()
-      ? "⛔ Deadline passerad: "
-      : isDeadlineSoon(app.deadline)
-      ? "⏰ Deadline snart: "
-      : "Deadline: "}
-    {new Date(app.deadline).toLocaleDateString("sv-SE", {
-      day: "2-digit",
-      month: "short",
-      year: "numeric",
-    })}
-  </span>
-)}
+                        <span
+                          className={`text-xs ${
+                            new Date(app.deadline) < new Date()
+                              ? "text-red-600"
+                              : isDeadlineSoon(app.deadline)
+                              ? "text-yellow-600"
+                              : "text-gray-500"
+                          }`}
+                        >
+                          {new Date(app.deadline) < new Date()
+                            ? "⛔ Deadline passerad: "
+                            : isDeadlineSoon(app.deadline)
+                            ? "⏰ Deadline snart: "
+                            : "Deadline: "}
+                          {new Date(app.deadline).toLocaleDateString("sv-SE", {
+                            day: "2-digit",
+                            month: "short",
+                            year: "numeric",
+                          })}
+                        </span>
+                      )}
 
                       <button
                         onClick={() => handleDelete(app._id)}

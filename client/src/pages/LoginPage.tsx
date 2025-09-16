@@ -13,7 +13,7 @@ const LoginPage: React.FC = () => {
 
     try {
       // loginUser sköter både anropet och lagring av token
-      const data = await loginUser(username, password);
+      await loginUser(username, password);
 
       // Vill du ändå spara username separat:
       localStorage.setItem("username", username);

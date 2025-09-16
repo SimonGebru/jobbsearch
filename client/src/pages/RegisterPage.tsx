@@ -14,7 +14,7 @@ const RegisterPage: React.FC = () => {
     e.preventDefault();
     setLoading(true);
     try {
-      await registerUser(username, email, password);
+      await registerUser(username, password);
       toast.success("Användare skapad! Logga in nu.");
       navigate("/login");
     } catch (err: any) {

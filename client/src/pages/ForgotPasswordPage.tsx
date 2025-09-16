@@ -3,12 +3,12 @@ import { toast } from "react-hot-toast";
 
 const ForgotPasswordPage: React.FC = () => {
   const [email, setEmail] = useState("");
-
+  const BASE = import.meta.env.VITE_API_URL || "";
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     try {
-      const res = await fetch("http://localhost:5001/api/auth/forgot-password", {
+      const res = await fetch(`${BASE}/api/auth/forgot-password`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email }),

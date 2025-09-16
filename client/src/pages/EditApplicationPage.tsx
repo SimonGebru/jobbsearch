@@ -13,6 +13,8 @@ interface Application {
   deadline?: string;
 }
 
+const BASE = import.meta.env.VITE_API_URL || "";
+
 const EditApplicationPage: React.FC = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -30,35 +32,62 @@ const EditApplicationPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // saknas id => tillbaka
+    if (!id) {
+      toast.error("Saknar ID för ansökan.");
+      navigate("/dashboard");
+      return;
+    }
+
     const fetchApplication = async () => {
+      setLoading(true);
       try {
         const token = localStorage.getItem("token");
-        const res = await fetch(`http://localhost:5001/api/applications/${id}`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+        if (!token) {
+          toast.error("Du är inte inloggad.");
+          navigate("/login");
+          return;
+        }
+
+        const res = await fetch(`${BASE}/api/applications/${id}`, {
+          headers: { Authorization: `Bearer ${token}` },
         });
 
-        if (!res.ok) throw new Error("Kunde inte hämta ansökan");
+        const data = await res.json().catch(() => null);
 
-        const data = await res.json();
+        if (!res.ok) {
+          throw new Error(
+            (data && (data.error || data.message)) || "Kunde inte hämta ansökan"
+          );
+        }
+
         setFormData({
-          ...data,
+          company: data.company || "",
+          role: data.role || "",
+          location: data.location || "",
+          status: data.status || "Skickad",
+          contactPerson: data.contactPerson || "",
+          notes: data.notes || "",
           deadline: data.deadline || "",
         });
       } catch (error) {
         console.error("Fel vid hämtning:", error);
-        toast.error("Kunde inte ladda ansökan");
+        toast.error(
+          error instanceof Error ? error.message : "Kunde inte ladda ansökan"
+        );
+        navigate("/dashboard");
       } finally {
         setLoading(false);
       }
     };
 
     fetchApplication();
-  }, [id]);
+  }, [id, navigate]);
 
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
+    >
   ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
@@ -66,11 +95,17 @@ const EditApplicationPage: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!id) return;
 
     try {
       const token = localStorage.getItem("token");
+      if (!token) {
+        toast.error("Du är inte inloggad.");
+        navigate("/login");
+        return;
+      }
 
-      const res = await fetch(`http://localhost:5001/api/applications/${id}`, {
+      const res = await fetch(`${BASE}/api/applications/${id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -79,13 +114,22 @@ const EditApplicationPage: React.FC = () => {
         body: JSON.stringify(formData),
       });
 
-      if (!res.ok) throw new Error("Kunde inte uppdatera ansökan");
+      const data = await res.json().catch(() => null);
+
+      if (!res.ok) {
+        throw new Error(
+          (data && (data.error || data.message)) ||
+            "Kunde inte uppdatera ansökan"
+        );
+      }
 
       toast.success("Ansökan uppdaterad!");
       navigate("/dashboard");
     } catch (error) {
       console.error("Fel vid uppdatering:", error);
-      toast.error("Misslyckades med att uppdatera");
+      toast.error(
+        error instanceof Error ? error.message : "Misslyckades med att uppdatera"
+      );
     }
   };
 
@@ -177,7 +221,7 @@ const EditApplicationPage: React.FC = () => {
             <input
               type="date"
               name="deadline"
-              value={formData.deadline}
+              value={formData.deadline || ""}
               onChange={handleChange}
               className="w-full text-sm border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
             />
