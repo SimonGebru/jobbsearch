@@ -5,7 +5,7 @@ const auth = require("../middleware/auth");
 const router = express.Router();
 
 /**
- * 🔹 GET note for a specific status
+ * GET note for a specific status
  * Hämtar användarens anteckning baserat på status (t.ex. "Pågående", "Skickad")
  */
 router.get("/:status", auth, async (req, res) => {
@@ -23,7 +23,7 @@ router.get("/:status", auth, async (req, res) => {
 });
 
 /**
- * 🔹 PATCH note for a specific status
+ * PATCH note for a specific status
  * Skapar eller uppdaterar en anteckning för den inloggade användaren
  */
 router.patch("/:status", auth, async (req, res) => {
