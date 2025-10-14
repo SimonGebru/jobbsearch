@@ -82,6 +82,9 @@ const DashboardPage = () => {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
+  const [notes, setNotes] = useState<Record<string, string>>({});
+  const [noteLoading, setNoteLoading] = useState<Record<string, boolean>>({});
+  const [noteTimers, setNoteTimers] = useState<Record<string, ReturnType<typeof setTimeout>>>({});
   const navigate = useNavigate();
 
   const token = localStorage.getItem("token");
@@ -107,6 +110,67 @@ const DashboardPage = () => {
     fetchApplications();
   }, [navigate]);
 
+  useEffect(() => {
+    const fetchNotes = async () => {
+      if (!token) return;
+      const allNotes: Record<string, string> = {};
+
+      await Promise.all(
+        statuses.map(async (status) => {
+          try {
+            const res = await fetch(`${BASE}/api/notes/${encodeURIComponent(status)}`, {
+              headers: { Authorization: `Bearer ${token}` },
+            });
+            const data = await res.json();
+            allNotes[status] = data.text || "";
+          } catch {
+            allNotes[status] = "";
+          }
+        })
+      );
+
+      setNotes(allNotes);
+    };
+
+    fetchNotes();
+  }, [token]);
+
+  const handleNoteChange = (status: string, newText: string) => {
+    setNotes((prev) => ({ ...prev, [status]: newText }));
+  
+    // Rensa befintlig timer om den finns
+    if (noteTimers[status]) {
+      clearTimeout(noteTimers[status]);
+    }
+  
+    // Sätt en ny timer
+    const newTimer = setTimeout(async () => {
+      setNoteLoading((prev) => ({ ...prev, [status]: true }));
+  
+      try {
+        const res = await fetch(`${BASE}/api/notes/${encodeURIComponent(status)}`, {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ text: newText }),
+        });
+  
+        if (!res.ok) throw new Error("Kunde inte spara anteckningen");
+  
+        toast.success(`💾 Sparat anteckning för ${status}`);
+      } catch {
+        toast.error("Misslyckades med att spara anteckningen");
+      } finally {
+        setNoteLoading((prev) => ({ ...prev, [status]: false }));
+      }
+    }, 4000); // ⏱️ Vänta 4 sekunder
+  
+    // Spara timern i state
+    setNoteTimers((prev) => ({ ...prev, [status]: newTimer }));
+  };
+
   const handleDelete = async (id: string) => {
     if (!window.confirm("Är du säker på att du vill ta bort ansökan?")) return;
 
@@ -128,7 +192,7 @@ const DashboardPage = () => {
         throw new Error(txt || "Kunde inte ta bort ansökan");
       }
 
-      setApplications((prev) => prev.filter((app) => app._id === id ? false : true));
+      setApplications((prev) => prev.filter((app) => app._id !== id));
       toast.success("Ansökan borttagen!");
     } catch (err) {
       toast.error("Misslyckades med att ta bort ansökan");
@@ -267,14 +331,13 @@ const DashboardPage = () => {
                 </div>
               </h3>
 
-              <ul className="space-y-2">
+              <ul className="space-y-2 flex-grow">
                 {applications
                   .filter((app) => app.status === status)
                   .filter((app) =>
                     `${app.company} ${app.role}`.toLowerCase().includes(searchTerm.toLowerCase())
                   )
-                  .filter((app) => (showFavoritesOnly ? app.favorite : true)
-                  )
+                  .filter((app) => (showFavoritesOnly ? app.favorite : true))
                   .sort((a, b) => {
                     const now = Date.now();
                     const aDeadline = a.deadline ? new Date(a.deadline).getTime() : Infinity;
@@ -361,6 +424,18 @@ const DashboardPage = () => {
                     </li>
                   ))}
               </ul>
+
+              {/* 📝 Anteckningsfält */}
+              <div className="mt-4">
+                <textarea
+                  rows={3}
+                  className="w-full p-2 border rounded-md text-sm shadow focus:ring focus:outline-none"
+                  placeholder={`Anteckningar för ${status}...`}
+                  value={notes[status] || ""}
+                  onChange={(e) => handleNoteChange(status, e.target.value)}
+                  disabled={noteLoading[status]}
+                />
+              </div>
             </div>
           ))}
         </div>

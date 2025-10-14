@@ -6,6 +6,7 @@ const cors = require("cors");
 
 const applicationRoutes = require("./routes/applicationRoutes");
 const authRoutes = require("./routes/authRoutes");
+const noteRoutes = require("./routes/noteRoutes");
 
 const app = express();
 
@@ -26,6 +27,7 @@ app.get("/api/health", (_req, res) => res.json({ ok: true }));
 
 app.use("/api/applications", applicationRoutes);
 app.use("/api/auth", authRoutes);
+app.use("/api/notes", noteRoutes);
 
 const MONGO_URI = process.env.MONGO_URI;
 if (!MONGO_URI) {
